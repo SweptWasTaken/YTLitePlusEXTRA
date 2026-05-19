@@ -85,6 +85,9 @@ jobs:
           echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH
           echo "THEOS=${{ github.workspace }}/theos" >> $GITHUB_ENV
 
+      - name: Clone FLEXHelperForYT
+        run: git clone --quiet --depth=1 https://github.com/Tonwalter888/FLEXHelperForYT.git
+        
       - name: Clone Theos
         run: git clone --quiet --depth=1 --recurse-submodules https://github.com/theos/theos.git
            
@@ -336,7 +339,12 @@ jobs:
       #     cd VolumeBoostYT
       #     make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS=arm64
       #     mv packages/*.deb ${{ github.workspace }}/volboostyt.deb
-          
+      - name: Build FLEXHelperForYT
+              run: |
+                cd FLEXHelperForYT
+                make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+                mv packages/*.deb ${{ github.workspace }}/flexhelper.deb
+                
       - name: Inject Tweaks Into IPA
         run: |
           tweaks="OpenYouTubeSafariExtension.appex"
