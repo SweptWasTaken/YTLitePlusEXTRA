@@ -192,7 +192,7 @@ jobs:
         run: git clone --quiet --depth=1 https://github.com/PoomSmart/YTVideoErrorAlert.git
 
       - name: Clone FLEXHelperForYT
-        run: git clone --quiet --depth=1 https://github.com/Tonwalter888/FLEXHelperForYT.git
+        run: git clone --quiet --depth=1 https://github.com/SweptWasTaken/FLEXHelperForYT.git
 
       # - name: Clone VolumeBoostYT
       #   if: ${{ inputs.volboost }}
