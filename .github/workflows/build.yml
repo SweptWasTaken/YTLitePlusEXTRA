@@ -339,13 +339,23 @@ jobs:
           make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/flexhelper.deb
 
-      - name: Download FLEX Framework
+      - name: Build FLEX Framework
         run: |
-          FLEX_TAG=$(curl -s "https://api.github.com/repos/FLEXTool/FLEX/releases/latest" | jq -r '.tag_name')
-          wget -q "https://github.com/FLEXTool/FLEX/releases/download/${FLEX_TAG}/FLEX.xcframework.zip" -O FLEX.xcframework.zip
-          unzip -q FLEX.xcframework.zip
-          find FLEX.xcframework -type d -name "FLEX.framework" | grep -v simulator | head -1 | xargs -I{} mv {} ${{ github.workspace }}/FLEX.framework
-          rm -rf FLEX.xcframework FLEX.xcframework.zip
+          git clone --quiet --depth=1 https://github.com/FLEXTool/FLEX.git
+          xcodebuild \
+            -project FLEX/FLEX.xcodeproj \
+            -scheme FLEX \
+            -configuration Release \
+            -sdk iphoneos \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            BUILD_DIR=$(pwd)/flex_build \
+            clean build 2>&1 | grep -E "(error:|Build succeeded|Build FAILED)" || true
+          find flex_build -type d -name "FLEX.framework" | head -1 | xargs -I{} mv {} ${{ github.workspace }}/FLEX.framework
+          rm -rf FLEX flex_build
 
       # - name: Build VolumeBoostYT
       #   if: ${{ inputs.volboost }}
