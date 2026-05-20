@@ -339,6 +339,14 @@ jobs:
           make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/flexhelper.deb
 
+      - name: Download FLEX Framework
+        run: |
+          FLEX_TAG=$(curl -s "https://api.github.com/repos/FLEXTool/FLEX/releases/latest" | jq -r '.tag_name')
+          wget -q "https://github.com/FLEXTool/FLEX/releases/download/${FLEX_TAG}/FLEX.xcframework.zip" -O FLEX.xcframework.zip
+          unzip -q FLEX.xcframework.zip
+          find FLEX.xcframework -type d -name "FLEX.framework" | grep -v simulator | head -1 | xargs -I{} mv {} ${{ github.workspace }}/FLEX.framework
+          rm -rf FLEX.xcframework FLEX.xcframework.zip
+
       # - name: Build VolumeBoostYT
       #   if: ${{ inputs.volboost }}
       #   run: |
@@ -348,12 +356,12 @@ jobs:
           
       - name: Inject Tweaks Into IPA
         run: |
-          tweaks="OpenYouTubeSafariExtension.appex"
+          tweaks="OpenYouTubeSafariExtension.appex FLEX.framework"
 
           for f in *.deb; do
             tweaks="$tweaks $f"
           done
-          
+
           cyan -i youtube.ipa -o YTLitePlusEXTRA_${{ env.YT_VERSION }}_v${{ inputs.ytlite_version }}.ipa -uwef $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
 
       - name: Create a Draft Release
