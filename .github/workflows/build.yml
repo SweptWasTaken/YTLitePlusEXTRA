@@ -366,13 +366,27 @@ jobs:
           
       - name: Inject Tweaks Into IPA
         run: |
-          tweaks="OpenYouTubeSafariExtension.appex FLEX.framework"
+          tweaks="OpenYouTubeSafariExtension.appex"
 
           for f in *.deb; do
             tweaks="$tweaks $f"
           done
 
           cyan -i youtube.ipa -o YTLitePlusEXTRA_${{ env.YT_VERSION }}_v${{ inputs.ytlite_version }}.ipa -uwef $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
+
+      - name: Embed FLEX Framework (no load command)
+        run: |
+          # Copy FLEX.framework into the IPA's Frameworks/ directory WITHOUT adding
+          # a Mach-O load command. This lets FLEXHelperForYT dlopen it lazily
+          # (user-triggered from Settings) so FLEX's +load does not run during dyld
+          # startup, which was corrupting YouTube's ObjC init and causing a crash.
+          IPA="YTLitePlusEXTRA_${{ env.YT_VERSION }}_v${{ inputs.ytlite_version }}.ipa"
+          mkdir ipa_work
+          unzip -q "$IPA" -d ipa_work
+          cp -r FLEX.framework "ipa_work/Payload/YouTube.app/Frameworks/"
+          ldid -S "ipa_work/Payload/YouTube.app/Frameworks/FLEX.framework/FLEX"
+          cd ipa_work && zip -qry "../$IPA" Payload && cd ..
+          rm -rf ipa_work
 
       - name: Create a Draft Release
         uses: softprops/action-gh-release@v3
